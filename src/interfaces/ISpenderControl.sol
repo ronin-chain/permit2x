@@ -5,14 +5,14 @@ interface ISpenderControl {
     /**
      * @dev Emitted when `account` is granted as a spender.
      *
-     * `caller` is the account that originated the contract call, the admin role bearer.
+     * `caller` is the account that originated the contract call, the owner.
      */
     event SpenderGranted(address indexed account, address indexed caller);
 
     /**
      * @dev Emitted when `account` is revoked as a spender.
      *
-     * `caller` is the account that originated the contract call, the admin role bearer.
+     * `caller` is the account that originated the contract call, the owner.
      */
     event SpenderRevoked(address indexed account, address indexed caller);
 
@@ -29,7 +29,7 @@ interface ISpenderControl {
     error SpenderControlUnauthorizedSpender(address account);
 
     /**
-     * @dev Returns `true` if `account` has been granted `role`.
+     * @dev Returns `true` if `account` has been granted as a spender.
      * @param account The address to check
      */
     function isSpender(address account) external view returns (bool);
@@ -38,7 +38,7 @@ interface ISpenderControl {
      * @dev Grants the spender role to an account.
      *
      * Requirements:
-     *  - The caller must be the admin role bearer.
+     *  - The caller must be the owner.
      *
      * @param account The address to grant the spender role
      */
@@ -48,7 +48,7 @@ interface ISpenderControl {
      * @dev Revokes the spender role from an account.
      *
      * Requirements:
-     * - The caller must be the admin role bearer.
+     * - The caller must be the owner.
      *
      * @param account The address to revoke the spender role
      */
