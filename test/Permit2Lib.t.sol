@@ -187,6 +187,9 @@ contract Permit2LibTest is Test, PermitSignature, GasSnapshot {
     //////////////////////////////////////////////////////////////*/
 
     function testPermit2Full() public {
+        vm.prank(address(0));
+        permit2.grantSpender(address(0xCAFE));
+
         (,, uint48 nonce) = permit2.allowance(PK_OWNER, address(token), address(0xCAFE));
 
         IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle({

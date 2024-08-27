@@ -9,8 +9,9 @@ import {EIP712} from "./EIP712.sol";
 import {IAllowanceTransfer} from "../src/interfaces/IAllowanceTransfer.sol";
 import {SignatureExpired, InvalidNonce} from "./PermitErrors.sol";
 import {Allowance} from "./libraries/Allowance.sol";
+import {SpenderControl} from "./SpenderControl.sol";
 
-contract AllowanceTransfer is IAllowanceTransfer, EIP712 {
+contract AllowanceTransfer is IAllowanceTransfer, EIP712, SpenderControl {
     using SignatureVerification for bytes;
     using SafeTransferLib for ERC20;
     using PermitHash for PermitSingle;
@@ -23,7 +24,10 @@ contract AllowanceTransfer is IAllowanceTransfer, EIP712 {
     mapping(address => mapping(address => mapping(address => PackedAllowance))) public allowance;
 
     /// @inheritdoc IAllowanceTransfer
-    function approve(address token, address spender, uint160 amount, uint48 expiration) external {
+    function approve(address token, address spender, uint160 amount, uint48 expiration)
+        external
+        onlyGrantedSpender(spender)
+    {
         PackedAllowance storage allowed = allowance[msg.sender][token][spender];
         allowed.updateAmountAndExpiration(amount, expiration);
         emit Approval(msg.sender, token, spender, amount, expiration);
@@ -128,7 +132,10 @@ contract AllowanceTransfer is IAllowanceTransfer, EIP712 {
     /// @notice Sets the new values for amount, expiration, and nonce.
     /// @dev Will check that the signed nonce is equal to the current nonce and then incrememnt the nonce value by 1.
     /// @dev Emits a Permit event.
-    function _updateApproval(PermitDetails memory details, address owner, address spender) private {
+    function _updateApproval(PermitDetails memory details, address owner, address spender)
+        private
+        onlyGrantedSpender(spender)
+    {
         uint48 nonce = details.nonce;
         address token = details.token;
         uint160 amount = details.amount;
