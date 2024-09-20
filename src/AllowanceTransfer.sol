@@ -77,7 +77,10 @@ contract AllowanceTransfer is IAllowanceTransfer, EIP712, SpenderControl {
 
     /// @notice Internal function for transferring tokens using stored allowances
     /// @dev Will fail if the allowed timeframe has passed
-    function _transfer(address from, address to, uint160 amount, address token) private {
+    function _transfer(address from, address to, uint160 amount, address token)
+        private
+        onlyGrantedSpender(msg.sender)
+    {
         PackedAllowance storage allowed = allowance[from][token][msg.sender];
 
         if (block.timestamp > allowed.expiration) revert AllowanceExpired(allowed.expiration);
