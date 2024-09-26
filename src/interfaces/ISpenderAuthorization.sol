@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface ISpenderControl {
+interface ISpenderAuthorization {
     /**
      * @dev Emitted when `account` is granted as a spender.
      *
-     * `caller` is the account that originated the contract call, the owner.
+     * @param caller is the account that originated the contract call, the owner.
      */
     event SpenderGranted(address indexed account, address indexed caller);
 
     /**
      * @dev Emitted when `account` is revoked as a spender.
      *
-     * `caller` is the account that originated the contract call, the owner.
+     * @param caller is the account that originated the contract call, the owner.
      */
     event SpenderRevoked(address indexed account, address indexed caller);
 
@@ -26,7 +26,7 @@ interface ISpenderControl {
     /**
      * @dev The `account` is not a spender.
      */
-    error SpenderControlUnauthorizedSpender(address account);
+    error SpenderAuthorizationUnauthorizedSpender(address account);
 
     /**
      * @dev Returns `true` if `account` has been granted as a spender.

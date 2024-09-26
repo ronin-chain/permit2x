@@ -9,9 +9,9 @@ import {EIP712} from "./EIP712.sol";
 import {IAllowanceTransfer} from "../src/interfaces/IAllowanceTransfer.sol";
 import {SignatureExpired, InvalidNonce} from "./PermitErrors.sol";
 import {Allowance} from "./libraries/Allowance.sol";
-import {SpenderControl} from "./SpenderControl.sol";
+import {SpenderAuthorization} from "./SpenderAuthorization.sol";
 
-contract AllowanceTransfer is IAllowanceTransfer, EIP712, SpenderControl {
+contract AllowanceTransfer is IAllowanceTransfer, EIP712, SpenderAuthorization {
     using SignatureVerification for bytes;
     using SafeTransferLib for ERC20;
     using PermitHash for PermitSingle;

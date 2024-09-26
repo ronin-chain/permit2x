@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import {ISpenderControl} from "./interfaces/ISpenderControl.sol";
+import {ISpenderAuthorization} from "./interfaces/ISpenderAuthorization.sol";
 
 import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 
-abstract contract SpenderControl is ISpenderControl, Ownable {
+abstract contract SpenderAuthorization is ISpenderAuthorization, Ownable {
     /// @dev Mapping of addresses allowed to spend.
     mapping(address => bool) private _spenders;
     /// @dev Whether arbitrary addresses are allowed to spend.
@@ -16,31 +16,31 @@ abstract contract SpenderControl is ISpenderControl, Ownable {
         _;
     }
 
-    /// @inheritdoc ISpenderControl
+    /// @inheritdoc ISpenderAuthorization
     function isSpender(address account) public view virtual returns (bool) {
         return _allSpendersAllowed || _spenders[account];
     }
 
-    /// @inheritdoc ISpenderControl
+    /// @inheritdoc ISpenderAuthorization
     function grantSpender(address account) external virtual onlyOwner {
         _spenders[account] = true;
         emit SpenderGranted(account, msg.sender);
     }
 
-    /// @inheritdoc ISpenderControl
+    /// @inheritdoc ISpenderAuthorization
     function revokeSpender(address account) external virtual onlyOwner {
         _spenders[account] = false;
         emit SpenderRevoked(account, msg.sender);
     }
 
-    /// @inheritdoc ISpenderControl
+    /// @inheritdoc ISpenderAuthorization
     function areAllSpendersAllowed() public view virtual returns (bool) {
         return _allSpendersAllowed;
     }
 
     /// @inheritdoc Ownable
     /// @dev Allows arbitrary addresses to be spenders.
-    function renounceOwnership() public override {
+    function renounceOwnership() public virtual override {
         super.renounceOwnership();
 
         _allSpendersAllowed = true;
@@ -50,7 +50,7 @@ abstract contract SpenderControl is ISpenderControl, Ownable {
     /// @dev Checks if the spender is allowed to spend.
     function _checkSpender(address spender) internal view {
         if (!isSpender(spender)) {
-            revert SpenderControlUnauthorizedSpender(spender);
+            revert SpenderAuthorizationUnauthorizedSpender(spender);
         }
     }
 }

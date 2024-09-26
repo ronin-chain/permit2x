@@ -13,7 +13,7 @@ import {AllowanceTransfer} from "../src/AllowanceTransfer.sol";
 import {SignatureExpired, InvalidNonce} from "../src/PermitErrors.sol";
 import {IAllowanceTransfer} from "../src/interfaces/IAllowanceTransfer.sol";
 import {GasSnapshot} from "forge-gas-snapshot/GasSnapshot.sol";
-import {ISpenderControl} from "../src/interfaces/ISpenderControl.sol";
+import {ISpenderAuthorization} from "../src/interfaces/ISpenderAuthorization.sol";
 
 contract AllowanceTransferTest is Test, TokenProvider, PermitSignature, GasSnapshot {
     using AddressBuilder for address[];
@@ -103,7 +103,9 @@ contract AllowanceTransferTest is Test, TokenProvider, PermitSignature, GasSnaps
         permit2.revokeSpender(address(this));
         vm.prank(from);
         vm.expectRevert(
-            abi.encodeWithSelector(ISpenderControl.SpenderControlUnauthorizedSpender.selector, (address(this)))
+            abi.encodeWithSelector(
+                ISpenderAuthorization.SpenderAuthorizationUnauthorizedSpender.selector, (address(this))
+            )
         );
         permit2.approve(address(token0), address(this), defaultAmount, defaultExpiration);
     }
@@ -130,7 +132,9 @@ contract AllowanceTransferTest is Test, TokenProvider, PermitSignature, GasSnaps
 
         permit2.revokeSpender(address(this));
         vm.expectRevert(
-            abi.encodeWithSelector(ISpenderControl.SpenderControlUnauthorizedSpender.selector, (address(this)))
+            abi.encodeWithSelector(
+                ISpenderAuthorization.SpenderAuthorizationUnauthorizedSpender.selector, (address(this))
+            )
         );
         permit2.permit(from, permit, sig);
     }
@@ -236,7 +240,9 @@ contract AllowanceTransferTest is Test, TokenProvider, PermitSignature, GasSnaps
 
         permit2.revokeSpender(address(this));
         vm.expectRevert(
-            abi.encodeWithSelector(ISpenderControl.SpenderControlUnauthorizedSpender.selector, (address(this)))
+            abi.encodeWithSelector(
+                ISpenderAuthorization.SpenderAuthorizationUnauthorizedSpender.selector, (address(this))
+            )
         );
         permit2.permit(from, permit, sig);
     }

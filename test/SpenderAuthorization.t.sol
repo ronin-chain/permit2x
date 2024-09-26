@@ -4,11 +4,11 @@ pragma solidity ^0.8.17;
 import "forge-std/Test.sol";
 import {MockPermit2} from "./mocks/MockPermit2.sol";
 import {TokenProvider} from "./utils/TokenProvider.sol";
-import {SpenderControl} from "../src/SpenderControl.sol";
+import {SpenderAuthorization} from "../src/SpenderAuthorization.sol";
 
-contract SpenderControlTest is Test, TokenProvider {
+contract SpenderAuthorizationTest is Test, TokenProvider {
     MockPermit2 permit2;
-    SpenderControl spenderControl;
+    SpenderAuthorization spenderControl;
 
     address from = address(0x1);
     address spender = address(0x2);
@@ -16,7 +16,7 @@ contract SpenderControlTest is Test, TokenProvider {
 
     function setUp() public {
         permit2 = new MockPermit2();
-        spenderControl = SpenderControl(address(permit2));
+        spenderControl = SpenderAuthorization(address(permit2));
         initializeERC20Tokens();
     }
 

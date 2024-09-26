@@ -15,7 +15,7 @@ import {SignatureTransfer} from "../src/SignatureTransfer.sol";
 import {GasSnapshot} from "forge-gas-snapshot/GasSnapshot.sol";
 import {ISignatureTransfer} from "../src/interfaces/ISignatureTransfer.sol";
 import {InvalidNonce, SignatureExpired} from "../src/PermitErrors.sol";
-import {ISpenderControl} from "../src/interfaces/ISpenderControl.sol";
+import {ISpenderAuthorization} from "../src/interfaces/ISpenderAuthorization.sol";
 
 contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnapshot {
     using AddressBuilder for address[];
@@ -124,7 +124,9 @@ contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnaps
 
         permit2.revokeSpender(address(this));
         vm.expectRevert(
-            abi.encodeWithSelector(ISpenderControl.SpenderControlUnauthorizedSpender.selector, (address(this)))
+            abi.encodeWithSelector(
+                ISpenderAuthorization.SpenderAuthorizationUnauthorizedSpender.selector, (address(this))
+            )
         );
         permit2.permitTransferFrom(permit, transferDetails, from, sig);
     }
@@ -258,7 +260,9 @@ contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnaps
 
         permit2.revokeSpender(address(this));
         vm.expectRevert(
-            abi.encodeWithSelector(ISpenderControl.SpenderControlUnauthorizedSpender.selector, (address(this)))
+            abi.encodeWithSelector(
+                ISpenderAuthorization.SpenderAuthorizationUnauthorizedSpender.selector, (address(this))
+            )
         );
         permit2.permitTransferFrom(permit, toAmountPairs, from, sig);
     }
@@ -486,7 +490,9 @@ contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnaps
 
         permit2.revokeSpender(address(this));
         vm.expectRevert(
-            abi.encodeWithSelector(ISpenderControl.SpenderControlUnauthorizedSpender.selector, (address(this)))
+            abi.encodeWithSelector(
+                ISpenderAuthorization.SpenderAuthorizationUnauthorizedSpender.selector, (address(this))
+            )
         );
         permit2.permitWitnessTransferFrom(permit, toAmountPairs, from, witness, WITNESS_TYPE_STRING, sig);
     }
@@ -601,7 +607,9 @@ contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnaps
 
         permit2.revokeSpender(address(this));
         vm.expectRevert(
-            abi.encodeWithSelector(ISpenderControl.SpenderControlUnauthorizedSpender.selector, (address(this)))
+            abi.encodeWithSelector(
+                ISpenderAuthorization.SpenderAuthorizationUnauthorizedSpender.selector, (address(this))
+            )
         );
         permit2.permitWitnessTransferFrom(permit, transferDetails, from, witness, WITNESS_TYPE_STRING, sig);
     }

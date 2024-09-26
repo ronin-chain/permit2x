@@ -8,9 +8,9 @@ import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {SignatureVerification} from "./libraries/SignatureVerification.sol";
 import {PermitHash} from "./libraries/PermitHash.sol";
 import {EIP712} from "./EIP712.sol";
-import {SpenderControl} from "./SpenderControl.sol";
+import {SpenderAuthorization} from "./SpenderAuthorization.sol";
 
-contract SignatureTransfer is ISignatureTransfer, EIP712, SpenderControl {
+contract SignatureTransfer is ISignatureTransfer, EIP712, SpenderAuthorization {
     using SignatureVerification for bytes;
     using SafeTransferLib for ERC20;
     using PermitHash for PermitTransferFrom;
