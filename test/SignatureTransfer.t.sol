@@ -15,7 +15,7 @@ import {SignatureTransfer} from "../src/SignatureTransfer.sol";
 import {GasSnapshot} from "forge-gas-snapshot/GasSnapshot.sol";
 import {ISignatureTransfer} from "../src/interfaces/ISignatureTransfer.sol";
 import {InvalidNonce, SignatureExpired} from "../src/PermitErrors.sol";
-import {ISpenderAuthorization} from "../src/interfaces/ISpenderAuthorization.sol";
+import {ISpenderPermit} from "../src/interfaces/ISpenderPermit.sol";
 
 contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnapshot {
     using AddressBuilder for address[];
@@ -66,7 +66,7 @@ contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnaps
         permit2 = new Permit2();
         DOMAIN_SEPARATOR = permit2.DOMAIN_SEPARATOR();
 
-        permit2.grantSpender(address(this));
+        permit2.permitSpender(address(this), true);
 
         fromPrivateKey = 0x12341234;
         from = vm.addr(fromPrivateKey);
@@ -112,7 +112,7 @@ contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnaps
         assertEq(token0.balanceOf(address2), startBalanceTo + defaultAmount);
     }
 
-    function testPermitTransferFromRevertWhenCallerIsNotGrantedSpender() public {
+    function testPermitTransferFromRevertWhenCallerIsNotPermittedSpender() public {
         uint256 nonce = 0;
         ISignatureTransfer.PermitTransferFrom memory permit = defaultERC20PermitTransfer(address(token0), nonce);
         bytes memory sig = getPermitTransferSignature(permit, fromPrivateKey, DOMAIN_SEPARATOR);
@@ -122,12 +122,8 @@ contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnaps
 
         ISignatureTransfer.SignatureTransferDetails memory transferDetails = getTransferDetails(address2, defaultAmount);
 
-        permit2.revokeSpender(address(this));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ISpenderAuthorization.SpenderAuthorizationUnauthorizedSpender.selector, (address(this))
-            )
-        );
+        permit2.permitSpender(address(this), false);
+        vm.expectRevert(abi.encodeWithSelector(ISpenderPermit.SpenderIsNotPermitted.selector, (address(this))));
         permit2.permitTransferFrom(permit, transferDetails, from, sig);
     }
 
@@ -248,7 +244,7 @@ contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnaps
         assertEq(token1.balanceOf(address0), startBalanceTo1 + defaultAmount);
     }
 
-    function testPermitBatchTransferFromRevertWhenCallerIsNotGrantedSpender() public {
+    function testPermitBatchTransferFromRevertWhenCallerIsNotPermittedSpender() public {
         uint256 nonce = 0;
         address[] memory tokens = AddressBuilder.fill(1, address(token0)).push(address(token1));
         ISignatureTransfer.PermitBatchTransferFrom memory permit = defaultERC20PermitMultiple(tokens, nonce);
@@ -258,12 +254,8 @@ contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnaps
         ISignatureTransfer.SignatureTransferDetails[] memory toAmountPairs =
             StructBuilder.fillSigTransferDetails(defaultAmount, to);
 
-        permit2.revokeSpender(address(this));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ISpenderAuthorization.SpenderAuthorizationUnauthorizedSpender.selector, (address(this))
-            )
-        );
+        permit2.permitSpender(address(this), false);
+        vm.expectRevert(abi.encodeWithSelector(ISpenderPermit.SpenderIsNotPermitted.selector, (address(this))));
         permit2.permitTransferFrom(permit, toAmountPairs, from, sig);
     }
 
@@ -473,7 +465,7 @@ contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnaps
         assertEq(token1.balanceOf(address0), startBalanceTo1 + defaultAmount);
     }
 
-    function testPermitBatchTransferFromTypedWitnessRevertWhenCallerIsNotGrantedSpender() public {
+    function testPermitBatchTransferFromTypedWitnessRevertWhenCallerIsNotPermittedSpender() public {
         uint256 nonce = 0;
         MockWitness memory witnessData = MockWitness(10000000, address(5), true);
         bytes32 witness = keccak256(abi.encode(witnessData));
@@ -488,12 +480,8 @@ contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnaps
         ISignatureTransfer.SignatureTransferDetails[] memory toAmountPairs =
             StructBuilder.fillSigTransferDetails(defaultAmount, to);
 
-        permit2.revokeSpender(address(this));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ISpenderAuthorization.SpenderAuthorizationUnauthorizedSpender.selector, (address(this))
-            )
-        );
+        permit2.permitSpender(address(this), false);
+        vm.expectRevert(abi.encodeWithSelector(ISpenderPermit.SpenderIsNotPermitted.selector, (address(this))));
         permit2.permitWitnessTransferFrom(permit, toAmountPairs, from, witness, WITNESS_TYPE_STRING, sig);
     }
 
@@ -594,7 +582,7 @@ contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnaps
         assertEq(token0.balanceOf(address2), startBalanceTo + defaultAmount);
     }
 
-    function testPermitTransferFromTypedWitnessRevertWhenCallerIsNotGrantedSpender() public {
+    function testPermitTransferFromTypedWitnessRevertWhenCallerIsNotPermittedSpender() public {
         uint256 nonce = 0;
         MockWitness memory witnessData = MockWitness(10000000, address(5), true);
         bytes32 witness = keccak256(abi.encode(witnessData));
@@ -605,12 +593,8 @@ contract SignatureTransferTest is Test, PermitSignature, TokenProvider, GasSnaps
 
         ISignatureTransfer.SignatureTransferDetails memory transferDetails = getTransferDetails(address2, defaultAmount);
 
-        permit2.revokeSpender(address(this));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ISpenderAuthorization.SpenderAuthorizationUnauthorizedSpender.selector, (address(this))
-            )
-        );
+        permit2.permitSpender(address(this), false);
+        vm.expectRevert(abi.encodeWithSelector(ISpenderPermit.SpenderIsNotPermitted.selector, (address(this))));
         permit2.permitWitnessTransferFrom(permit, transferDetails, from, witness, WITNESS_TYPE_STRING, sig);
     }
 

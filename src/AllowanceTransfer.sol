@@ -9,9 +9,9 @@ import {EIP712} from "./EIP712.sol";
 import {IAllowanceTransfer} from "../src/interfaces/IAllowanceTransfer.sol";
 import {SignatureExpired, InvalidNonce} from "./PermitErrors.sol";
 import {Allowance} from "./libraries/Allowance.sol";
-import {SpenderAuthorization} from "./SpenderAuthorization.sol";
+import {SpenderPermit} from "./SpenderPermit.sol";
 
-contract AllowanceTransfer is IAllowanceTransfer, EIP712, SpenderAuthorization {
+contract AllowanceTransfer is IAllowanceTransfer, EIP712, SpenderPermit {
     using SignatureVerification for bytes;
     using SafeTransferLib for ERC20;
     using PermitHash for PermitSingle;
@@ -26,7 +26,7 @@ contract AllowanceTransfer is IAllowanceTransfer, EIP712, SpenderAuthorization {
     /// @inheritdoc IAllowanceTransfer
     function approve(address token, address spender, uint160 amount, uint48 expiration)
         external
-        onlyGrantedSpender(spender)
+        onlyPermittedSpender(spender)
     {
         PackedAllowance storage allowed = allowance[msg.sender][token][spender];
         allowed.updateAmountAndExpiration(amount, expiration);
@@ -79,7 +79,7 @@ contract AllowanceTransfer is IAllowanceTransfer, EIP712, SpenderAuthorization {
     /// @dev Will fail if the allowed timeframe has passed
     function _transfer(address from, address to, uint160 amount, address token)
         private
-        onlyGrantedSpender(msg.sender)
+        onlyPermittedSpender(msg.sender)
     {
         PackedAllowance storage allowed = allowance[from][token][msg.sender];
 
@@ -137,7 +137,7 @@ contract AllowanceTransfer is IAllowanceTransfer, EIP712, SpenderAuthorization {
     /// @dev Emits a Permit event.
     function _updateApproval(PermitDetails memory details, address owner, address spender)
         private
-        onlyGrantedSpender(spender)
+        onlyPermittedSpender(spender)
     {
         uint48 nonce = details.nonce;
         address token = details.token;
