@@ -8,8 +8,9 @@ import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 import {SignatureVerification} from "./libraries/SignatureVerification.sol";
 import {PermitHash} from "./libraries/PermitHash.sol";
 import {EIP712} from "./EIP712.sol";
+import {SpenderPermit} from "./SpenderPermit.sol";
 
-contract SignatureTransfer is ISignatureTransfer, EIP712 {
+contract SignatureTransfer is ISignatureTransfer, EIP712, SpenderPermit {
     using SignatureVerification for bytes;
     using SafeTransferLib for ERC20;
     using PermitHash for PermitTransferFrom;
@@ -54,7 +55,7 @@ contract SignatureTransfer is ISignatureTransfer, EIP712 {
         address owner,
         bytes32 dataHash,
         bytes calldata signature
-    ) private {
+    ) private onlyPermittedSpender(msg.sender) {
         uint256 requestedAmount = transferDetails.requestedAmount;
 
         if (block.timestamp > permit.deadline) revert SignatureExpired(permit.deadline);
@@ -102,7 +103,7 @@ contract SignatureTransfer is ISignatureTransfer, EIP712 {
         address owner,
         bytes32 dataHash,
         bytes calldata signature
-    ) private {
+    ) private onlyPermittedSpender(msg.sender) {
         uint256 numPermitted = permit.permitted.length;
 
         if (block.timestamp > permit.deadline) revert SignatureExpired(permit.deadline);
