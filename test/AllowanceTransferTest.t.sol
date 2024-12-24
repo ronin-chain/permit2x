@@ -13,6 +13,7 @@ import {AllowanceTransfer} from "../src/AllowanceTransfer.sol";
 import {SignatureExpired, InvalidNonce} from "../src/PermitErrors.sol";
 import {IAllowanceTransfer} from "../src/interfaces/IAllowanceTransfer.sol";
 import {GasSnapshot} from "forge-gas-snapshot/GasSnapshot.sol";
+import {ISpenderPermit} from "../src/interfaces/ISpenderPermit.sol";
 
 contract AllowanceTransferTest is Test, TokenProvider, PermitSignature, GasSnapshot {
     using AddressBuilder for address[];
@@ -59,6 +60,8 @@ contract AllowanceTransferTest is Test, TokenProvider, PermitSignature, GasSnaps
         permit2 = new Permit2();
         DOMAIN_SEPARATOR = permit2.DOMAIN_SEPARATOR();
 
+        permit2.permitSpender(address(this), true);
+
         fromPrivateKey = 0x12341234;
         from = vm.addr(fromPrivateKey);
 
@@ -96,6 +99,13 @@ contract AllowanceTransferTest is Test, TokenProvider, PermitSignature, GasSnaps
         assertEq(nonce, 0);
     }
 
+    function testApproveRevertWhenSpenderIsNotPermitted() public {
+        permit2.permitSpender(address(this), false);
+        vm.prank(from);
+        vm.expectRevert(abi.encodeWithSelector(ISpenderPermit.SpenderIsNotPermitted.selector, (address(this))));
+        permit2.approve(address(token0), address(this), defaultAmount, defaultExpiration);
+    }
+
     function testSetAllowance() public {
         IAllowanceTransfer.PermitSingle memory permit =
             defaultERC20PermitAllowance(address(token0), defaultAmount, defaultExpiration, defaultNonce);
@@ -109,6 +119,16 @@ contract AllowanceTransferTest is Test, TokenProvider, PermitSignature, GasSnaps
         assertEq(amount, defaultAmount);
         assertEq(expiration, defaultExpiration);
         assertEq(nonce, 1);
+    }
+
+    function testSetAllowanceRevertWhenSpenderIsNotPermitted() public {
+        IAllowanceTransfer.PermitSingle memory permit =
+            defaultERC20PermitAllowance(address(token0), defaultAmount, defaultExpiration, defaultNonce);
+        bytes memory sig = getPermitSignature(permit, fromPrivateKey, DOMAIN_SEPARATOR);
+
+        permit2.permitSpender(address(this), false);
+        vm.expectRevert(abi.encodeWithSelector(ISpenderPermit.SpenderIsNotPermitted.selector, (address(this))));
+        permit2.permit(from, permit, sig);
     }
 
     function testSetAllowanceCompactSig() public {
@@ -202,6 +222,17 @@ contract AllowanceTransferTest is Test, TokenProvider, PermitSignature, GasSnaps
         assertEq(amount1, defaultAmount);
         assertEq(expiration1, defaultExpiration);
         assertEq(nonce1, 1);
+    }
+
+    function testSetAllowanceBatchRevertWhenSpenderIsNotPermitted() public {
+        address[] memory tokens = AddressBuilder.fill(1, address(token0)).push(address(token1));
+        IAllowanceTransfer.PermitBatch memory permit =
+            defaultERC20PermitBatchAllowance(tokens, defaultAmount, defaultExpiration, defaultNonce);
+        bytes memory sig = getPermitBatchSignature(permit, fromPrivateKey, DOMAIN_SEPARATOR);
+
+        permit2.permitSpender(address(this), false);
+        vm.expectRevert(abi.encodeWithSelector(ISpenderPermit.SpenderIsNotPermitted.selector, (address(this))));
+        permit2.permit(from, permit, sig);
     }
 
     function testSetAllowanceBatchEvent() public {
